@@ -13,8 +13,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using Microsoft.Extensions.Configuration;
-// using Azure;
-// using Azure.AI.OpenAI;
+using Azure;
+using Azure.AI.OpenAI;
 
 namespace Functions
 {
@@ -60,32 +60,32 @@ namespace Functions
 
             // オウム返しする
             // この一行をコメントアウトする
-            await Reply(firstEvent.ReplyToken, firstEvent.Message.Text);
+            // await Reply(firstEvent.ReplyToken, firstEvent.Message.Text);
 
             // 以下のコメントアウトをはずす
-            // var prompt = firstEvent.Message.Text;
-            // var client = new OpenAIClient(
-            //     new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_URL")),
-            //     new AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY")));
-            // var responseWithoutStream = await client.GetChatCompletionsAsync(
-            //     Environment.GetEnvironmentVariable("AZURE_OPENAI_API_MODEL_NAME"),
-            //     new ChatCompletionsOptions()
-            //     {
-            //         Messages =
-            //         {
-            //             new ChatMessage(ChatRole.System, "あなたは親切なアシスタントAIです。"),
-            //             new ChatMessage(ChatRole.User, prompt),
-            //         },
-            //         MaxTokens = 800,
-            //     });
-            // if (responseWithoutStream.Value == null || !responseWithoutStream.Value.Choices.Any())
-            // {
-            //     log.LogWarning("Azure OpenAI Service response is null. prompt = {prompt}", prompt);
-            //     return null;
-            // }
-            // var replyText = responseWithoutStream.Value.Choices[0].Message.Content;
-            // log.LogInformation("replyText: {replyText}", replyText);
-            // await Reply(firstEvent.ReplyToken, replyText);
+            var prompt = firstEvent.Message.Text;
+            var client = new OpenAIClient(
+                new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_URL")),
+                new AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY")));
+            var responseWithoutStream = await client.GetChatCompletionsAsync(
+                Environment.GetEnvironmentVariable("AZURE_OPENAI_API_MODEL_NAME"),
+                new ChatCompletionsOptions()
+                {
+                    Messages =
+                    {
+                        new ChatMessage(ChatRole.System, "あなたは親切なアシスタントAIです。"),
+                        new ChatMessage(ChatRole.User, prompt),
+                    },
+                    MaxTokens = 800,
+                });
+            if (responseWithoutStream.Value == null || !responseWithoutStream.Value.Choices.Any())
+            {
+                log.LogWarning("Azure OpenAI Service response is null. prompt = {prompt}", prompt);
+                return null;
+            }
+            var replyText = responseWithoutStream.Value.Choices[0].Message.Content;
+            log.LogInformation("replyText: {replyText}", replyText);
+            await Reply(firstEvent.ReplyToken, replyText);
 
             return new OkResult();
         }
